@@ -440,26 +440,35 @@ function openSettings(firstRun){
   openSheet(el=>{
     el.innerHTML=`<div class="coord">${firstRun?"Welcome":"Players"}</div><h3>${firstRun?"Who's holding this phone?":"Your trip crew"}</h3>`;
     const who=document.createElement("div");who.className="who";
-    S.players.forEach(p=>{const b=document.createElement("button");b.type="button";b.className="btn "+(S.me===p.id?"":"sec");b.textContent=(S.me===p.id?"✓ ":"")+"I'm "+p.name;
-      b.onclick=()=>{S.me=p.id;S.view=p.id;lsSet("tabi.me",p.id);closeSheet();toast("You're "+p.name)};who.appendChild(b)});
-    el.appendChild(who);
     el.insertAdjacentHTML("beforeend",`<span class="lbl">Names (everyone sees these)</span>`);
     S.players.forEach((p,k)=>el.insertAdjacentHTML("beforeend",`<input type="text" id="pn${k}" maxlength="20" value="${esc(p.name)}" aria-label="Name for player ${k+1}">`));
+    el.insertAdjacentHTML("beforeend",`<span class="lbl">This phone belongs to</span>`);
+    const whoBtns=[];
+    S.players.forEach((p,k)=>{const b=document.createElement("button");b.type="button";b.className="btn "+(S.me===p.id?"":"sec");
+      b.onclick=async()=>{b.disabled=true;if(!await saveCfg()){b.disabled=false;return}
+        S.me=p.id;S.view=p.id;lsSet("tabi.me",p.id);closeSheet();toast("You're "+pName(p.id))};
+      who.appendChild(b);whoBtns.push(b)});
+    el.appendChild(who);
+    const label=()=>S.players.forEach((p,k)=>{whoBtns[k].textContent=(S.me===p.id?"✓ ":"")+"I'm "+($("pn"+k).value.trim()||"Player "+(k+1))});
+    label();S.players.forEach((p,k)=>$("pn"+k).addEventListener("input",label));
     el.insertAdjacentHTML("beforeend",`<label class="lbl" for="startIn">First day of the trip</label><input type="date" id="startIn" value="${S.startDate||""}">
       <div class="row"><button class="btn" id="saveCfg" type="button">Save names</button><button class="btn sec" id="closeB" type="button">Close</button></div>
       <p class="meta">Cards reshuffle at midnight Japan time. Each of you gets a different card every day.</p>
       ${S.mode==="shared"?`<button class="ghost" id="leaveB" type="button">Switch trip code</button>`:""}`);
     $("closeB").onclick=closeSheet;
     if($("leaveB"))$("leaveB").onclick=()=>{lsDel("tabi.trip");S.trip=null;S.marks=new Map();openTripCode()};
-    $("saveCfg").onclick=async()=>{
+    // Saves names and start date if they changed. Returns false if the save failed.
+    async function saveCfg(){
       const players=S.players.map((p,k)=>({id:p.id,name:($("pn"+k).value.trim()||"Player "+(k+1)).slice(0,20)}));
       const startDate=$("startIn").value||null;
+      if(JSON.stringify(players)===JSON.stringify(S.players)&&startDate===S.startDate)return true;
       try{
         if(S.mode==="local")lsSet("tabi.config",JSON.stringify({players,startDate}));
         else await rpc("save_config",{p_code:S.trip,p_players:players,p_start:startDate});
-        S.players=players;S.startDate=startDate;closeSheet();toast("Saved");
-      }catch(e){toast(e.message||"Could not save. Try again.")}
-    };
+        S.players=players;S.startDate=startDate;return true;
+      }catch(e){toast(e.message||"Could not save names. Try again.");return false}
+    }
+    $("saveCfg").onclick=async()=>{$("saveCfg").disabled=true;if(await saveCfg()){closeSheet();toast("Saved")}else $("saveCfg").disabled=false};
   });
 }
 $("settingsBtn").onclick=()=>{if(S.mode==="shared"&&!S.trip)openTripCode();else openSettings(false)};

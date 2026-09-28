@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tabi Bingo</title>
+<meta name="description" content="Daily Japan trip bingo for three friends, with photo proof.">
+<meta name="theme-color" content="#EDF0F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1319" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tabi Bingo">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<script src="config.js"></script>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#EDF0F3; --surface:#FFFFFF; --ink:#18202C; --muted:#5E6878; --line:#D3D9E0;
+  --stamp:#C62F3A; --bingo:#FBE3E4; --accent:#1F4E8C; --accent-ink:#FFFFFF; --free:#E2E8F0;
+  --shadow:0 10px 30px rgba(24,32,44,.18); --blend:multiply;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme:dark;
+    --bg:#0F1319; --surface:#19202A; --ink:#E6EAF0; --muted:#98A2B2; --line:#2B3441;
+    --stamp:#E8606B; --bingo:#3A1E24; --accent:#8DB0E4; --accent-ink:#0F1319; --free:#222B37;
+    --shadow:0 10px 30px rgba(0,0,0,.5); --blend:normal;
+  }
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);margin:0}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{color:var(--ink);font-family:"Zen Kaku Gothic New",system-ui,-apple-system,"Hiragino Sans",sans-serif;font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+img{max-width:100%}
+[hidden]{display:none!important}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{max-width:560px;margin:0 auto;padding:16px 16px 40px;display:flex;flex-direction:column;gap:14px}
+
+header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{margin:0;font-family:"Dela Gothic One","Zen Kaku Gothic New",sans-serif;font-weight:400;font-size:26px;letter-spacing:.01em;line-height:1.1;display:flex;align-items:baseline;gap:8px}
+h1 small{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700;font-size:13px;color:var(--stamp);letter-spacing:.08em}
+.ghost{background:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;color:var(--muted)}
+
+.daynav{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px;text-align:center}
+.daynav button{height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-size:20px;line-height:1}
+.daynav button:disabled{opacity:.35;cursor:default}
+.dayja{font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
+.dayen{font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+
+.players{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ptab{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 6px;text-align:center;display:flex;flex-direction:column;gap:2px;min-width:0}
+.ptab .n{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptab .s{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ptab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.ptab[aria-selected="true"] .s{color:inherit;opacity:.85}
+.ptab .you{font-size:10px;letter-spacing:.1em;text-transform:uppercase;opacity:.7}
+
+.boardwrap{background:var(--surface);border-radius:16px;padding:10px;border:1px solid var(--line)}
+.letters,.board{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.letters{margin-bottom:6px}
+.letters span{text-align:center;font-family:"Dela Gothic One",sans-serif;font-size:18px;color:var(--stamp);line-height:1}
+.cell{position:relative;aspect-ratio:1;max-width:100%;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:4px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:10.5px;line-height:1.2;overflow:hidden;hyphens:auto;-webkit-hyphens:auto;overflow-wrap:break-word}
+.cell.inline{background:var(--bingo)}
+.cell.done .t{opacity:.45}
+.cell.free{background:var(--free);font-weight:700}
+.cell .cam{position:absolute;right:3px;bottom:3px;width:12px;height:12px;color:var(--muted)}
+.stamp{position:absolute;inset:14%;border:2.5px solid var(--stamp);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--stamp);font-family:"Dela Gothic One",sans-serif;font-size:20px;transform:rotate(var(--r,-8deg));mix-blend-mode:var(--blend);box-shadow:inset 0 0 0 2px var(--surface),inset 0 0 0 3.5px var(--stamp);pointer-events:none}
+.stamp.pop{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(1.6) rotate(var(--r));opacity:0}100%{transform:scale(1) rotate(var(--r));opacity:1}}
+@media (prefers-reduced-motion:reduce){.stamp.pop{animation:none}}
+.hint{margin:0;font-size:12.5px;color:var(--muted);text-align:center}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+.card h2{margin:0 0 8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:7px 4px;text-align:right;font-size:14px;border-top:1px solid var(--line)}
+th{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.06em;text-transform:uppercase;border-top:0}
+th:first-child,td:first-child{text-align:left}
+td:first-child{font-weight:700}
+.lead{color:var(--stamp)}
+.status{font-size:12px;color:var(--muted);text-align:center;margin:0}
+
+.scrim{position:fixed;inset:0;background:rgba(10,14,20,.45);z-index:10}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:11;max-height:88vh;overflow:auto;background:var(--surface);border-radius:20px 20px 0 0;box-shadow:var(--shadow);padding:18px 16px calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet-in{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.sheet .coord{font-family:"Dela Gothic One",sans-serif;color:var(--stamp);font-size:14px;letter-spacing:.06em}
+.sheet h3{margin:0;font-size:20px;line-height:1.25;text-wrap:balance}
+.sheet .lbl{font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-weight:700}
+textarea,input[type=text],input[type=date]{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg);font-size:16px}
+textarea{min-height:84px;resize:vertical}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:700;font-size:15px;background:var(--accent);color:var(--accent-ink);flex:1;text-align:center}
+.btn.stamp-btn{background:var(--stamp);color:#fff}
+.btn.sec{background:var(--bg);color:var(--ink);border:1px solid var(--line)}
+.btn.warn{background:none;color:var(--stamp);border:1px solid var(--stamp)}
+.btn:disabled{opacity:.45;cursor:default}
+.filebtn{position:relative;overflow:hidden}
+.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.photo{width:100%;border-radius:12px;display:block;max-height:50vh;object-fit:contain;background:var(--bg)}
+.proof{white-space:pre-wrap;margin:0;font-size:15px}
+.meta{font-size:12px;color:var(--muted);margin:0}
+.who{display:grid;gap:8px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:14px;z-index:20;max-width:calc(100% - 32px);text-align:center}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Tabi Bingo <small>旅ビンゴ</small></h1>
+    <button class="ghost" id="settingsBtn" type="button">Players</button>
+  </header>
+
+  <div class="daynav">
+    <button id="prevDay" type="button" aria-label="Previous day">‹</button>
+    <div><div class="dayja" id="dayJa">—</div><div class="dayen" id="dayEn">Loading</div></div>
+    <button id="nextDay" type="button" aria-label="Next day">›</button>
+  </div>
+
+  <div class="players" id="players" role="tablist" aria-label="Whose card"></div>
+
+  <div class="boardwrap">
+    <div class="letters" aria-hidden="true"><span>B</span><span>I</span><span>N</span><span>G</span><span>O</span></div>
+    <div class="board" id="board"></div>
+  </div>
+  <p class="hint" id="hint">Tap a square to log proof and stamp it.</p>
+
+  <section class="card">
+    <h2>Trip standings</h2>
+    <table>
+      <thead><tr><th>Player</th><th>Squares</th><th>Bingos</th><th>Blackouts</th></tr></thead>
+      <tbody id="standings"></tbody>
+    </table>
+  </section>
+  <p class="status" id="status">Connecting…</p>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" hidden role="dialog" aria-modal="true"><div class="sheet-in" id="sheetBody"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const TASKS = [
+"Ride a shinkansen","Buy a vending machine drink you can't read","Eat at conveyor-belt sushi","Eat a konbini egg sando",
+"Find an art manhole cover","Collect a station stamp (eki stamp)","Win a prize from a claw machine","Photo with a mascot costume",
+"Eat something on a stick","Try matcha soft serve","Ring the bell at a shrine","Draw an omikuji fortune",
+"Spot a Shiba Inu","Sing at karaoke","Order ramen from a ticket machine","Eat natto",
+"Buy the weirdest Kit Kat flavor you see","Photograph a toilet control panel","Take purikura photos","Ride a packed rush-hour train",
+"Order a full meal in Japanese","Walk under a torii gate","Eat takoyaki","Eat okonomiyaki",
+"Try a snack only sold in this region","Get a gachapon capsule toy","Visit an animal café","Spot someone wearing a kimono",
+"Shop at a 100-yen store","Drink hot canned coffee","Order a highball","Drink at a standing bar",
+"Find an izakaya with under 10 seats","Walk a covered shopping street","Get a photo of Mt. Fuji","Soak in an onsen or sento",
+"Eat wagyu","Eat yakitori","Eat melon pan","Visit a Pokémon Center",
+"Play an arcade rhythm game","Get a goshuin temple seal","Order coffee at an old kissaten","Eat onigiri for breakfast",
+"Eat a sweet you can't identify","Rinse hands at a temizuya","Buy an omamori charm","Find a vending machine that sells no drinks",
+"Walk into a pachinko parlor","Pay for something with an IC card","See 3 konbini brands from one spot","Eat Japanese curry",
+"Try a Japan-only fast food item","Eat tempura","Try a new sake","Eat mochi",
+"Eat taiyaki","Photograph a confusing English sign","Ask a local for directions","Catch the last train",
+"Photograph a koi pond","Find the Don Quijote penguin","Buy socks with a weird design","Drink corn soup from a vending machine",
+"See the city from 40+ floors up","Group selfie with all 3 of you","Eat at a 24-hour gyudon chain","Take shoes off to go inside",
+"Eat an ekiben on a train","Learn a phrase from a local","Find a maneki-neko lucky cat","Eat a fruit sando",
+"Walk 20,000 steps in a day","Take a photo in a tiny alley (yokocho)","Try a drink from a department store food hall","Nap on a train"
+];
+const TZ = "Asia/Tokyo";
+const LETTERS = "BINGO";
+const DEFAULT_PLAYERS = [{id:"p1",name:"Player 1"},{id:"p2",name:"Player 2"},{id:"p3",name:"Player 3"}];
+const LINES = (()=>{const L=[];for(let i=0;i<5;i++){L.push([0,1,2,3,4].map(c=>i*5+c));L.push([0,1,2,3,4].map(r=>r*5+i));}
+  L.push([0,6,12,18,24]);L.push([4,8,12,16,20]);return L;})();
+const CFG = window.TABI_CONFIG || {};
+const SB_URL = (CFG.supabaseUrl||"").replace(/\/+$/,""), SB_KEY = CFG.supabaseKey||"";
+const POLL_MS = 12000;
+
+const $ = id => document.getElementById(id);
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function lsDel(k){try{localStorage.removeItem(k)}catch(e){}}
+
+function todayKey(){return new Intl.DateTimeFormat("en-CA",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date())}
+function shiftKey(k,n){const d=new Date(k+"T12:00:00Z");d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)}
+function dayDiff(a,b){return Math.round((new Date(a+"T12:00:00Z")-new Date(b+"T12:00:00Z"))/864e5)}
+function jaLabel(k){const d=new Date(k+"T12:00:00Z");return `${d.getUTCMonth()+1}月${d.getUTCDate()}日(${"日月火水木金土"[d.getUTCDay()]})`}
+function enLabel(k){return new Date(k+"T12:00:00Z").toLocaleDateString("en-US",{weekday:"long",month:"short",day:"numeric",timeZone:"UTC"})}
+function timeLabel(ms){return new Date(ms).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:TZ})+" JST"}
+
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function cardFor(date,pid){
+  const r=rng(hash(date+"|"+pid+"|tabi-v1"));const idx=TASKS.map((_,i)=>i);
+  for(let i=idx.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]]}
+  const cells=idx.slice(0,24).map(i=>TASKS[i]);cells.splice(12,0,null);return cells;
+}
+function tilt(id){return (hash(id)%21)-10}
+
+const S = {
+  today: todayKey(), date: todayKey(), me: lsGet("tabi.me"), view: null,
+  players: DEFAULT_PLAYERS, startDate: null, marks: new Map(),
+  mode: SB_URL&&SB_KEY ? "shared" : "local", trip: null, fresh: null, open: null, lastSync: 0
+};
+S.view = S.me || "p1";
+
+/* ---------- trip code: ?trip=CODE in the link, then remembered ---------- */
+(function(){
+  const u=new URL(location.href);const t=u.searchParams.get("trip");
+  if(t){lsSet("tabi.trip",t.trim());u.searchParams.delete("trip");history.replaceState(null,"",u.pathname+u.search+u.hash)}
+  S.trip=lsGet("tabi.trip");
+})();
+
+/* ---------- Supabase (plain fetch, no library) ---------- */
+function sbHeaders(extra){
+  const h=Object.assign({apikey:SB_KEY},extra||{});
+  if(SB_KEY.startsWith("eyJ"))h.Authorization="Bearer "+SB_KEY; // legacy anon JWT key
+  return h;
+}
+class TripError extends Error{}
+async function rpc(fn,args){
+  let res;
+  try{res=await fetch(`${SB_URL}/rest/v1/rpc/${fn}`,{method:"POST",headers:sbHeaders({"Content-Type":"application/json"}),body:JSON.stringify(args)})}
+  catch(e){throw new Error("No connection. Check your signal and try again.")}
+  const txt=await res.text();
+  if(!res.ok){
+    let msg=txt;try{msg=JSON.parse(txt).message||txt}catch(e){}
+    if(/unknown trip code/.test(msg))throw new TripError("That trip code isn't recognized.");
+    throw new Error("Server said: "+msg);
+  }
+  return txt?JSON.parse(txt):null;
+}
+function photoUrl(path){return path?`${SB_URL}/storage/v1/object/public/proofs/${path.split("/").map(encodeURIComponent).join("/")}`:null}
+
+async function refresh(){
+  if(S.mode!=="shared"||!S.trip)return;
+  try{
+    const st=await rpc("get_state",{p_code:S.trip});
+    if(st.config&&Array.isArray(st.config.players)&&st.config.players.length===3){S.players=st.config.players;S.startDate=st.config.start_date||null}
+    S.marks=new Map((st.marks||[]).map(m=>[m.id,{date:m.date,player:m.player,idx:m.idx,task:m.task,text:m.note,photo:m.photo,at:Number(m.at)}]));
+    S.lastSync=Date.now();setStatus("Synced "+new Date().toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"}));
+    if(!S.open)render();
+  }catch(e){
+    if(e instanceof TripError){lsDel("tabi.trip");S.trip=null;openTripCode(e.message);return}
+    setStatus("Offline. Retrying… (stamps need a connection)");
+  }
+}
+
+/* ---------- offline mode (no Supabase configured) ---------- */
+const local = {
+  load(){try{return JSON.parse(lsGet("tabi.marks")||"{}")}catch(e){return {}}},
+  save(o){lsSet("tabi.marks",JSON.stringify(o))}
+};
+function loadLocal(){
+  S.marks=new Map(Object.entries(local.load()));
+  try{const c=JSON.parse(lsGet("tabi.config")||"null");if(c){S.players=c.players||S.players;S.startDate=c.startDate||null}}catch(e){}
+}
+
+async function writeMark(id,body){
+  if(S.mode==="local"){const o=local.load();if(body)o[id]=body;else delete o[id];local.save(o);S.marks=new Map(Object.entries(o));return}
+  if(body)await rpc("put_mark",{p_code:S.trip,p_id:id,p_date:body.date,p_player:body.player,p_idx:body.idx,p_task:body.task,p_note:body.text,p_photo:body.photo||null,p_at:body.at});
+  else await rpc("delete_mark",{p_code:S.trip,p_id:id});
+  if(body)S.marks.set(id,body);else S.marks.delete(id);
+  refresh();
+}
+
+function loadImage(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file);const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error("That file isn't an image this phone can read."));i.src=u})}
+function drawScaled(img,max){const s=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));const c=document.createElement("canvas");
+  c.width=Math.round(img.naturalWidth*s);c.height=Math.round(img.naturalHeight*s);c.getContext("2d").drawImage(img,0,0,c.width,c.height);return c}
+async function storePhoto(file,id){
+  const img=await loadImage(file);
+  if(S.mode==="local"){
+    let max=900,q=.7,data;do{data=drawScaled(img,max).toDataURL("image/jpeg",q);max=Math.round(max*.8)}while(data.length>200000&&max>300);
+    return {photoData:data};
+  }
+  const blob=await new Promise(r=>drawScaled(img,1600).toBlob(r,"image/jpeg",.82));
+  const path=`${S.trip}/${id}-${Date.now().toString(36)}.jpg`;
+  let res;
+  try{res=await fetch(`${SB_URL}/storage/v1/object/proofs/${path}`,{method:"POST",headers:sbHeaders({"Content-Type":"image/jpeg","x-upsert":"false"}),body:blob})}
+  catch(e){throw new Error("Photo upload failed: no connection.")}
+  if(!res.ok)throw new Error("Photo upload failed ("+res.status+").");
+  return {photo:path};
+}
+function photoSrc(m){return m?(m.photoData||photoUrl(m.photo)):null}
+
+/* ---------- scoring ---------- */
+function markId(date,pid,idx){return `${date}_${pid}_${idx}`}
+function doneSet(date,pid){const s=new Set([12]);for(let i=0;i<25;i++)if(S.marks.has(markId(date,pid,i)))s.add(i);return s}
+function linesDone(set){return LINES.filter(l=>l.every(i=>set.has(i)))}
+function standings(){
+  const out={};S.players.forEach(p=>out[p.id]={sq:0,bingo:0,black:0});
+  const byDay={};
+  for(const m of S.marks.values()){if(!out[m.player])continue;out[m.player].sq++;(byDay[m.date+"|"+m.player]??=new Set([12])).add(m.idx)}
+  for(const k in byDay){const pid=k.split("|")[1];out[pid].bingo+=linesDone(byDay[k]).length;if(byDay[k].size===25)out[pid].black++}
+  return out;
+}
+
+/* ---------- render ---------- */
+function pName(pid){const p=S.players.find(p=>p.id===pid);return (p&&p.name)||"Player"}
+function initial(pid){return (pName(pid).trim()[0]||"?").toUpperCase()}
+const CAM='<svg class="cam" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+
+function render(){
+  const d=S.date;
+  $("dayJa").textContent=jaLabel(d);
+  let en=d===S.today?"Today · "+enLabel(d):enLabel(d);
+  if(S.startDate){const n=dayDiff(d,S.startDate)+1;if(n>=1)en="Day "+n+" · "+en}
+  $("dayEn").textContent=en;
+  $("nextDay").disabled=d>=S.today;
+
+  const pt=$("players");pt.innerHTML="";
+  S.players.forEach(p=>{
+    const set=doneSet(d,p.id);const b=document.createElement("button");b.type="button";b.className="ptab";b.setAttribute("role","tab");
+    b.setAttribute("aria-selected",String(S.view===p.id));
+    const lines=linesDone(set).length;
+    b.innerHTML=`<span class="n"></span><span class="s">${set.size-1}/24 · ${lines} bingo${lines===1?"":"s"}</span>${p.id===S.me?'<span class="you">you</span>':""}`;
+    b.querySelector(".n").textContent=p.name;
+    b.onclick=()=>{S.view=p.id;render()};pt.appendChild(b);
+  });
+
+  const card=cardFor(d,S.view);const set=doneSet(d,S.view);const inLine=new Set(linesDone(set).flat());
+  const board=$("board");board.innerHTML="";
+  card.forEach((task,i)=>{
+    const c=document.createElement("button");c.type="button";c.className="cell";
+    const id=markId(d,S.view,i);const m=S.marks.get(id);
+    if(task===null){c.classList.add("free");c.innerHTML='<span class="t">FREE<br>自由</span>';c.disabled=true}
+    else{
+      const t=document.createElement("span");t.className="t";t.textContent=task;c.appendChild(t);
+      c.setAttribute("aria-label",`${LETTERS[i%5]}${Math.floor(i/5)+1}: ${task}${m?" (stamped)":""}`);
+      c.onclick=()=>openCell(i);
+    }
+    if(inLine.has(i))c.classList.add("inline");
+    if(m){c.classList.add("done");const s=document.createElement("span");
+      s.className="stamp"+(S.fresh===id?" pop":"");s.style.setProperty("--r",tilt(id)+"deg");s.textContent=initial(S.view);c.appendChild(s);
+      if(m.photo||m.photoData)c.insertAdjacentHTML("beforeend",CAM)}
+    board.appendChild(c);
+  });
+  S.fresh=null;
+  const mine=S.view===S.me;
+  $("hint").textContent=!S.me?"Pick who you are under Players to start stamping.":
+    mine?"Tap a square to log proof and stamp it.":`Viewing ${pName(S.view)}'s card. Tap a stamp to see their proof.`;
+
+  const st=standings();const best=Math.max(...S.players.map(p=>st[p.id].bingo));
+  $("standings").innerHTML="";
+  S.players.forEach(p=>{const r=st[p.id];const tr=document.createElement("tr");
+    tr.innerHTML=`<td></td><td>${r.sq}</td><td class="${best>0&&r.bingo===best?"lead":""}">${r.bingo}</td><td>${r.black}</td>`;
+    tr.firstChild.textContent=p.name;$("standings").appendChild(tr)});
+}
+
+/* ---------- sheets ---------- */
+function openSheet(build,locked){S.open={locked:!!locked};$("sheetBody").innerHTML="";build($("sheetBody"));$("scrim").hidden=false;$("sheet").hidden=false}
+function closeSheet(){S.open=null;$("scrim").hidden=true;$("sheet").hidden=true;$("sheetBody").innerHTML="";render()}
+$("scrim").onclick=()=>{if(S.open&&!S.open.locked)closeSheet()};
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&S.open&&!S.open.locked)closeSheet()});
+function toast(msg){const t=$("toast");t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,3200)}
+function setStatus(s){$("status").textContent=s}
+function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
+
+function openTripCode(err){
+  openSheet(el=>{
+    el.innerHTML=`<div class="coord">Join your trip</div><h3>Enter your trip code</h3>
+      <p class="meta">The person who set up Tabi Bingo has it. You only need to enter it once on this phone.</p>
+      ${err?`<p class="meta" style="color:var(--stamp)">${esc(err)}</p>`:""}
+      <input type="text" id="tripIn" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Trip code">
+      <div class="row"><button class="btn" id="joinB" type="button">Join</button></div>`;
+    const go=async()=>{
+      const v=$("tripIn").value.trim();if(!v)return;
+      $("joinB").disabled=true;$("joinB").textContent="Checking…";
+      S.trip=v;
+      try{await rpc("get_state",{p_code:v});lsSet("tabi.trip",v);S.open=null;closeSheet();await refresh();if(!S.me)openSettings(true)}
+      catch(e){S.trip=null;openTripCode(e.message)}
+    };
+    $("joinB").onclick=go;$("tripIn").onkeydown=e=>{if(e.key==="Enter")go()};
+    setTimeout(()=>$("tripIn").focus(),50);
+  },true);
+}
+
+function openCell(i){
+  const d=S.date,pid=S.view,task=cardFor(d,pid)[i],id=markId(d,pid,i),m=S.marks.get(id);
+  const coord=LETTERS[i%5]+(Math.floor(i/5)+1);
+  const canEdit=pid===S.me;
+  openSheet(el=>{
+    el.innerHTML=`<div class="coord">${coord} · ${esc(pName(pid))}</div><h3>${esc(task)}</h3>`;
+    if(!canEdit){
+      if(!m){el.insertAdjacentHTML("beforeend",`<p class="meta">Not stamped yet.</p>`)}
+      else{
+        if(m.text)el.insertAdjacentHTML("beforeend",`<p class="proof">${esc(m.text)}</p>`);
+        const src=photoSrc(m);
+        if(src){const img=document.createElement("img");img.className="photo";img.alt="Proof photo";img.src=src;el.appendChild(img)}
+        el.insertAdjacentHTML("beforeend",`<p class="meta">Stamped ${timeLabel(m.at)}</p>`);
+      }
+      el.insertAdjacentHTML("beforeend",`<div class="row"><button class="btn sec" id="closeB" type="button">Close</button></div>`);
+      $("closeB").onclick=closeSheet;return;
+    }
+    let file=null,removePhoto=false;
+    el.insertAdjacentHTML("beforeend",`
+      <label class="lbl" for="proofText">Proof</label>
+      <textarea id="proofText" maxlength="500" placeholder="What happened? Where were you?"></textarea>
+      <img class="photo" id="prev" alt="Proof photo" hidden>
+      <div class="row">
+        <label class="btn sec filebtn">Take photo<input id="camIn" type="file" accept="image/*" capture="environment"></label>
+        <label class="btn sec filebtn">Choose photo<input id="libIn" type="file" accept="image/*"></label>
+      </div>
+      <button class="btn warn" id="rmPhoto" type="button" hidden>Remove photo</button>
+      <div class="row"><button class="btn stamp-btn" id="saveB" type="button">Stamp it</button></div>
+      ${m?`<p class="meta">Stamped ${timeLabel(m.at)}</p><div class="row"><button class="btn warn" id="clearB" type="button">Clear this square</button></div>`:""}
+      <div class="row"><button class="btn sec" id="closeB" type="button">Cancel</button></div>`);
+    const ta=$("proofText"),prev=$("prev"),save=$("saveB"),rm=$("rmPhoto");
+    ta.value=m&&m.text||"";
+    const existing=photoSrc(m);
+    if(existing){prev.src=existing;prev.hidden=false;rm.hidden=false}
+    function hasPhoto(){return !!file||(!!m&&!removePhoto&&!!(m.photo||m.photoData))}
+    function sync(){save.disabled=!(ta.value.trim()||hasPhoto());save.textContent=m?"Update stamp":"Stamp it"}
+    sync();ta.oninput=sync;
+    function pick(e){const f=e.target.files&&e.target.files[0];if(!f)return;file=f;removePhoto=false;prev.src=URL.createObjectURL(f);prev.hidden=false;rm.hidden=false;sync()}
+    $("camIn").onchange=pick;$("libIn").onchange=pick;
+    rm.onclick=()=>{file=null;removePhoto=true;prev.hidden=true;prev.removeAttribute("src");rm.hidden=true;sync()};
+    $("closeB").onclick=closeSheet;
+    save.onclick=async()=>{
+      save.disabled=true;save.textContent=file?"Uploading photo…":"Saving…";
+      try{
+        const body={date:d,player:pid,idx:i,task,text:ta.value.trim(),at:m&&m.at||Date.now()};
+        if(file)Object.assign(body,await storePhoto(file,id));
+        else if(m&&!removePhoto){if(m.photo)body.photo=m.photo;if(m.photoData)body.photoData=m.photoData}
+        await writeMark(id,body);
+        S.fresh=m?null:id;closeSheet();
+        const set=doneSet(d,pid),n=linesDone(set).length;
+        toast(m?"Stamp updated":set.size===25?"BLACKOUT! Every square stamped.":"Stamped "+coord+(n?` · ${n} bingo${n>1?"s":""} today`:""));
+      }catch(e){toast(e.message||"Could not save. Try again.");sync()}
+    };
+    if(m){let armed=false;const cb=$("clearB");cb.onclick=async()=>{
+      if(!armed){armed=true;cb.textContent="Tap again to clear";return}
+      cb.disabled=true;try{await writeMark(id,null);closeSheet();toast("Cleared "+coord)}catch(e){toast(e.message);cb.disabled=false}
+    }}
+  });
+}
+
+function openSettings(firstRun){
+  openSheet(el=>{
+    el.innerHTML=`<div class="coord">${firstRun?"Welcome":"Players"}</div><h3>${firstRun?"Who's holding this phone?":"Your trip crew"}</h3>`;
+    const who=document.createElement("div");who.className="who";
+    S.players.forEach(p=>{const b=document.createElement("button");b.type="button";b.className="btn "+(S.me===p.id?"":"sec");b.textContent=(S.me===p.id?"✓ ":"")+"I'm "+p.name;
+      b.onclick=()=>{S.me=p.id;S.view=p.id;lsSet("tabi.me",p.id);closeSheet();toast("You're "+p.name)};who.appendChild(b)});
+    el.appendChild(who);
+    el.insertAdjacentHTML("beforeend",`<span class="lbl">Names (everyone sees these)</span>`);
+    S.players.forEach((p,k)=>el.insertAdjacentHTML("beforeend",`<input type="text" id="pn${k}" maxlength="20" value="${esc(p.name)}" aria-label="Name for player ${k+1}">`));
+    el.insertAdjacentHTML("beforeend",`<label class="lbl" for="startIn">First day of the trip</label><input type="date" id="startIn" value="${S.startDate||""}">
+      <div class="row"><button class="btn" id="saveCfg" type="button">Save names</button><button class="btn sec" id="closeB" type="button">Close</button></div>
+      <p class="meta">Cards reshuffle at midnight Japan time. Each of you gets a different card every day.</p>
+      ${S.mode==="shared"?`<button class="ghost" id="leaveB" type="button">Switch trip code</button>`:""}`);
+    $("closeB").onclick=closeSheet;
+    if($("leaveB"))$("leaveB").onclick=()=>{lsDel("tabi.trip");S.trip=null;S.marks=new Map();openTripCode()};
+    $("saveCfg").onclick=async()=>{
+      const players=S.players.map((p,k)=>({id:p.id,name:($("pn"+k).value.trim()||"Player "+(k+1)).slice(0,20)}));
+      const startDate=$("startIn").value||null;
+      try{
+        if(S.mode==="local")lsSet("tabi.config",JSON.stringify({players,startDate}));
+        else await rpc("save_config",{p_code:S.trip,p_players:players,p_start:startDate});
+        S.players=players;S.startDate=startDate;closeSheet();toast("Saved");
+      }catch(e){toast(e.message||"Could not save. Try again.")}
+    };
+  });
+}
+$("settingsBtn").onclick=()=>{if(S.mode==="shared"&&!S.trip)openTripCode();else openSettings(false)};
+$("prevDay").onclick=()=>{S.date=shiftKey(S.date,-1);render()};
+$("nextDay").onclick=()=>{if(S.date<S.today){S.date=shiftKey(S.date,1);render()}};
+
+setInterval(()=>{
+  const t=todayKey();if(t!==S.today){const wasToday=S.date===S.today;S.today=t;if(wasToday)S.date=t;if(!S.open)render()}
+  if(document.visibilityState==="visible"&&Date.now()-S.lastSync>=POLL_MS)refresh();
+},POLL_MS/2);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refresh()});
+
+if(S.mode==="local"){loadLocal();setStatus("Offline mode: stamps are saved on this phone only.");render();if(!S.me)openSettings(true)}
+else{render();if(!S.trip)openTripCode();else refresh().then(()=>{if(S.trip&&!S.me&&!S.open)openSettings(true)})}
+</script>
+</body>
+</html>

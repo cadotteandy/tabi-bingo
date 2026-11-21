@@ -27,6 +27,10 @@ one phone only.
 
 ## Changing the tasks
 
-Edit the `TASKS` array in `index.html`. Cards are dealt from the list with a
-seed made from the date and the player, so changing the list also reshuffles
-the cards for days already played. Stamps already made keep their task text.
+The list lives in the `TASKS` array in `index.html` and comes from the BINGO!
+tab of the trip's Google Sheet. A plain string is a square; `["square",
+"explanation"]` adds a note shown when the square is opened.
+
+Cards are dealt from the list with a seed made from the date and the player,
+so changing the list reshuffles every card, past days included. A stamped
+square keeps showing the task it was stamped for.

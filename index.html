@@ -68,6 +68,8 @@ h1 small{font-family:"Zen Kaku Gothic New",sans-serif;font-weight:700;font-size:
 .letters{margin-bottom:6px}
 .letters span{text-align:center;font-family:"Dela Gothic One",sans-serif;font-size:18px;color:var(--stamp);line-height:1}
 .cell{position:relative;aspect-ratio:1;max-width:100%;border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:4px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:10.5px;line-height:1.2;overflow:hidden;hyphens:auto;-webkit-hyphens:auto;overflow-wrap:break-word}
+.cell.long{font-size:9.5px}
+.cell.xlong{font-size:8.5px;line-height:1.15}
 .cell.inline{background:var(--bingo)}
 .cell.done .t{opacity:.45}
 .cell.free{background:var(--free);font-weight:700}
@@ -147,27 +149,75 @@ textarea{min-height:84px;resize:vertical}
 <div class="toast" id="toast" hidden></div>
 
 <script>
+// Copied from the BINGO! tab of the "Japan 2027 March" sheet.
+// A plain string is a square; [square, explanation] adds the note shown when the square is opened.
 const TASKS = [
-"Ride a shinkansen","Buy a vending machine drink you can't read","Eat at conveyor-belt sushi","Eat a konbini egg sando",
-"Find an art manhole cover","Collect a station stamp (eki stamp)","Win a prize from a claw machine","Photo with a mascot costume",
-"Eat something on a stick","Try matcha soft serve","Ring the bell at a shrine","Draw an omikuji fortune",
-"Spot a Shiba Inu","Sing at karaoke","Order ramen from a ticket machine","Eat natto",
-"Buy the weirdest Kit Kat flavor you see","Photograph a toilet control panel","Take purikura photos","Ride a packed rush-hour train",
-"Order a full meal in Japanese","Walk under a torii gate","Eat takoyaki","Eat okonomiyaki",
-"Try a snack only sold in this region","Get a gachapon capsule toy","Visit an animal café","Spot someone wearing a kimono",
-"Shop at a 100-yen store","Drink hot canned coffee","Order a highball","Drink at a standing bar",
-"Find an izakaya with under 10 seats","Walk a covered shopping street","Get a photo of Mt. Fuji","Soak in an onsen or sento",
-"Eat wagyu","Eat yakitori","Eat melon pan","Visit a Pokémon Center",
-"Play an arcade rhythm game","Get a goshuin temple seal","Order coffee at an old kissaten","Eat onigiri for breakfast",
-"Eat a sweet you can't identify","Rinse hands at a temizuya","Buy an omamori charm","Find a vending machine that sells no drinks",
-"Walk into a pachinko parlor","Pay for something with an IC card","See 3 konbini brands from one spot","Eat Japanese curry",
-"Try a Japan-only fast food item","Eat tempura","Try a new sake","Eat mochi",
-"Eat taiyaki","Photograph a confusing English sign","Ask a local for directions","Catch the last train",
-"Photograph a koi pond","Find the Don Quijote penguin","Buy socks with a weird design","Drink corn soup from a vending machine",
-"See the city from 40+ floors up","Group selfie with all 3 of you","Eat at a 24-hour gyudon chain","Take shoes off to go inside",
-"Eat an ekiben on a train","Learn a phrase from a local","Find a maneki-neko lucky cat","Eat a fruit sando",
-"Walk 20,000 steps in a day","Take a photo in a tiny alley (yokocho)","Try a drink from a department store food hall","Nap on a train"
-];
+// From the Bingo tab
+"Kei Truck","Depiction of Godzilla","Get a Gachapon",
+["English Aphorism","Not just English, but an aspirational marketing bit of English"],
+"Hot or Alcoholic beverage from vending machine","Picture with someone in cosplay","Gundam ad for non-gundam item/service",
+"Purchase an anime collab from a konbini","Non-food/drink item from vending machine",
+"Enter a room/building that requires you to remove your shoes","Photo of a National Treasure",
+["Surf & Turf","Eat a food that combines terrestial and aquatic animal meat"],
+"Picture of a monkey","1000 Cranes","Wear kimono/yukata",
+["Be given the \"X\" gesture","Oh gods..."],
+"Picture of a clothed jizo",
+["Find 3 Mario Kart items","Turtle shell, coin, mushroom, banana peel, etc."],
+["Catch a Pokemon","Not from a Pokemon Store"],
+"Clean up 3 pieces of litter","Get a snack on a stick",
+["Yuru-kyara","Purchase something with the local mascot on it"],
+"Picture of the Great Wave off Kanagawa",
+// From Andy Bingo ideas
+"Eat Ramen at a tiny shop","Buy a mystery drink from a vending machine","Eat Something you've never tried before",
+"Get an omikuji fortune at a shrine or temple",
+["Take a selfie with sakura","cherry blossoms"],
+"Eat something you cannot identify","Successfuly talk to someone in Japanese","Walk through a tori gate",
+"Win something from a claw game","Find the strangest vending machine item","Sing karaoke","Find something Oregon related",
+"See a Japanese wedding","See mount fuji","Hear a train station melody you recognize","Visit Don Quijote late at night",
+"Hear someone playing American Music","Use only Japanese during a purchase","Navigate somewhere without Google maps",
+"Take a photo recreating an anime pose","Have a local take a group photo","Spot a person that is asleep on public transport",
+"Someone walks the wrong direction off of the train","Hello Kitty","A way too elaborate dessert","A dog in an outfit",
+"Find an anime character that no one in the group recognizes","Find the strangest arcade prize",
+"Spend more than 5 minutes in a pachinko parlor","Best Gatchapon purchase group vote",
+"Learn 5 new Japanese phrases that you didn't know","Someone says I miss home","Someone says I wish I lived here",
+"Someone gets hangry","Someone can't figure out where the trash goes","Someone walks 25,000+ steps",
+"\"This seemed like a good idea at the time\"",
+["\"Only in Japan\"","Like wtf..."],
+"\"Unplanned adventure\"","Someone buys the same drink twice",
+["Get a tattoo","lol Driver"],
+"Find a 89 degree angle","Find a Komainu","Find a Kitsune","Find an animal that you can only see in Japan","Find a Koban",
+"Find a fish in a gutter","\"Oh that's a shrine?\"","Find somone wearing geta","Cleanse yourself at a shrine correctly",
+"Go up a flight of stairs that is over 100 steps","Sit on every bench you see","Drive a swan boat","Eat a crepe",
+"Buy a fruit that you have never had and eat it from a market","Complain about a tourist from another country",
+"Beat your friends at your favorite game","Shut your mouth and hug it out!","Ride a bike","Take a subway","Take a train",
+"Take a bus","Speak your truth","Finish every meal you eat for that day",
+"Buy the same item from a shop as your friend without knowing it",
+"Buy something that you will have to explain to your family","Eat 5 different flavors of kit kat in a day",
+"Take a creepy picture",
+["Alcoholic Calpis/Pocari sweat???","No idea"],
+"Join a picnic or have a picnic in a koen",
+["Uggh Starbucks...","I love the environmental storytelling of these rows"],
+"Take a 30 minute power nap","Find your Japanese Doppelganger","See a city from 40+ stories up",
+"Tourist Trap!!! *you have to do a tourist trap","Get money out at a kobini","Eat a Sakura flavored treat",
+"Shake a fist at the mariokart tourists","Accept all the maid cafe flyers that you are handed","Eat a black egg",
+"Yarrr! You're a pirate!","Gilco running man pose","Rub Billiken's feet","Hold onto your trash for far too long",
+"Find an elevator that does not have the 4th floor","Yosegi Zaiku","Read an Ema wish","Find a fruit over 10000 yen",
+"Seeing a Maneki-neko","Hot corn soup","Manhole cover for that specific city","Dog in a stroller",
+// From Placeholder bingo cards
+"Ride a shinkansen","Eat at conveyor-belt sushi","Eat a konbini egg sando","Collect a station stamp (eki stamp)",
+"Photo with a mascot costume","Try matcha soft serve","Ring the bell at a shrine","Spot a Shiba Inu",
+"Order ramen from a ticket machine","Eat natto","Buy the weirdest Kit Kat flavor you see","Photograph a toilet control panel",
+"Take purikura photos","Ride a packed rush-hour train","Order a full meal in Japanese","Eat takoyaki","Eat okonomiyaki",
+"Try a snack only sold in this region","Visit an animal café","Spot someone wearing a kimono","Shop at a 100-yen store",
+"Order a highball","Drink at a standing bar","Find an izakaya with under 10 seats","Walk a covered shopping street",
+"Soak in an onsen or sento","Eat wagyu","Eat yakitori","Eat melon pan","Visit a Pokémon Center","Play an arcade rhythm game",
+"Get a goshuin temple seal","Order coffee at an old kissaten","Eat onigiri for breakfast","Buy an omamori charm",
+"Pay for something with an IC card","See 3 konbini brands from one spot","Eat Japanese curry","Try a Japan-only fast food item",
+"Eat tempura","Try a new sake","Eat mochi","Eat taiyaki","Photograph a confusing English sign","Ask a local for directions",
+"Catch the last train","Photograph a koi pond","Find the Don Quijote penguin","Buy socks with a weird design",
+"Group selfie with all 3 of you","Eat at a 24-hour gyudon chain","Eat an ekiben on a train","Eat a fruit sando",
+"Take a photo in a tiny alley (yokocho)","Try a drink from a department store food hall","Nap on a train"
+].map(t=>Array.isArray(t)?{text:t[0],hint:t[1]}:{text:t,hint:""});
 const TZ = "Asia/Tokyo";
 const LETTERS = "BINGO";
 const DEFAULT_PLAYERS = [{id:"p1",name:"Player 1"},{id:"p2",name:"Player 2"},{id:"p3",name:"Player 3"}];
@@ -195,6 +245,13 @@ function cardFor(date,pid){
   const r=rng(hash(date+"|"+pid+"|tabi-v1"));const idx=TASKS.map((_,i)=>i);
   for(let i=idx.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]]}
   const cells=idx.slice(0,24).map(i=>TASKS[i]);cells.splice(12,0,null);return cells;
+}
+// The square shown at a spot: a stamp keeps the task it was stamped for, even if the list changed since.
+function squareAt(date,pid,i){
+  const sq=cardFor(date,pid)[i];if(sq===null)return null;
+  const m=S.marks.get(markId(date,pid,i));
+  if(m&&m.task&&m.task!==sq.text)return TASKS.find(t=>t.text===m.task)||{text:m.task,hint:""};
+  return sq;
 }
 function tilt(id){return (hash(id)%21)-10}
 
@@ -321,13 +378,15 @@ function render(){
 
   const card=cardFor(d,S.view);const set=doneSet(d,S.view);const inLine=new Set(linesDone(set).flat());
   const board=$("board");board.innerHTML="";
-  card.forEach((task,i)=>{
+  card.forEach((_,i)=>{
+    const task=squareAt(d,S.view,i);
     const c=document.createElement("button");c.type="button";c.className="cell";
     const id=markId(d,S.view,i);const m=S.marks.get(id);
     if(task===null){c.classList.add("free");c.innerHTML='<span class="t">FREE<br>自由</span>';c.disabled=true}
     else{
-      const t=document.createElement("span");t.className="t";t.textContent=task;c.appendChild(t);
-      c.setAttribute("aria-label",`${LETTERS[i%5]}${Math.floor(i/5)+1}: ${task}${m?" (stamped)":""}`);
+      const t=document.createElement("span");t.className="t";t.textContent=task.text;c.appendChild(t);
+      if(task.text.length>44)c.classList.add("xlong");else if(task.text.length>30)c.classList.add("long");
+      c.setAttribute("aria-label",`${LETTERS[i%5]}${Math.floor(i/5)+1}: ${task.text}${m?" (stamped)":""}`);
       c.onclick=()=>openCell(i);
     }
     if(inLine.has(i))c.classList.add("inline");
@@ -377,11 +436,11 @@ function openTripCode(err){
 }
 
 function openCell(i){
-  const d=S.date,pid=S.view,task=cardFor(d,pid)[i],id=markId(d,pid,i),m=S.marks.get(id);
+  const d=S.date,pid=S.view,sq=squareAt(d,pid,i),task=sq.text,id=markId(d,pid,i),m=S.marks.get(id);
   const coord=LETTERS[i%5]+(Math.floor(i/5)+1);
   const canEdit=pid===S.me;
   openSheet(el=>{
-    el.innerHTML=`<div class="coord">${coord} · ${esc(pName(pid))}</div><h3>${esc(task)}</h3>`;
+    el.innerHTML=`<div class="coord">${coord} · ${esc(pName(pid))}</div><h3>${esc(task)}</h3>${sq.hint?`<p class="meta">${esc(sq.hint)}</p>`:""}`;
     if(!canEdit){
       if(!m){el.insertAdjacentHTML("beforeend",`<p class="meta">Not stamped yet.</p>`)}
       else{
